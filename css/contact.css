@@ -1,0 +1,37 @@
+
+.contact_form {
+	margin: auto;
+	width: 400px;
+}
+
+.mycontact {
+ float: right;
+ min-width: 650px;
+ padding-bottom: 50px;
+ background: #eff3f7;
+
+ margin-bottom: 40px;
+ font-family: 'fira_sanslight';
+ border-radius: 4px;
+ /*overflow: hidden;*/
+}
+
+.mycontact_header {
+	height: 139px;
+	margin: 0px;
+	margin-bottom: 15px;
+	padding: 0px;
+	background: #48cbe8;
+	line-height: 122px;
+	text-align: center;
+	font-family: 'fira_sansbook';
+	font-size: 27px;
+	color: #FFFFFF;
+	border-bottom: 17px solid #67dffa;
+}
+
+
+
+
+
+
