@@ -11,13 +11,15 @@ if (isset($_GET['destroy'])) {
   }
 }
 
-if (isset($_POST['login'])) {$login=$_POST['login'];
-if ($login == '') {unset($login);}}
+if (isset($_POST['formdata'])) {
 
-if (isset($_POST['password'])) {$password=$_POST['password'];
-if ($password == '') {unset($password);}}
+	parse_str($_POST['formdata'], $params);
 
-if (isset($login) && isset($password)) {
+	$login = strip_tags(htmlspecialchars(trim($params['login'])));
+	$password = strip_tags(htmlspecialchars(trim($params['password'])));
+}
+
+if (!empty($login) && !empty($password)) {
 
     // Подключение к БД
     require_once("php/config_app.php");

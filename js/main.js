@@ -1,24 +1,3 @@
-/* Navigation*/
-(function () {
-
-  if(document.getElementById('navigation-list')) {
-    var navelements = document.getElementById('navigation-list').getElementsByTagName('li'),
-        currentpage = location.pathname.match(/[^/]*$/);
-
-    if (navelements.length > 0) {
-      for(var i = 0, len = navelements.length;  i < len; i++) {
-        if (currentpage[0] === "" ) {
-          currentpage = "index.php";
-        }
-
-        if (navelements[i].querySelector('a').href.indexOf(currentpage) !=-1) {
-            navelements[i].className += " current";
-        }
-      }
-    }
-  }
-})();
-
 (function(){
   var $form;
 
@@ -30,6 +9,8 @@
    */
   function init() {
     $form = $('.form');
+
+    initFileUpload();
   }
 
   /**
@@ -39,7 +20,7 @@
     $('#link_popup_show').on('click', onPopupShow);
     $('.popup__overlay, #icon_popup_close').on('click', onPopupHide);
     $('.input_text, .textarea_text').on('keypress', onToolTipHide)
-    $('#unload_file').on('change', onChangeFile);
+    $('#upload_file').on('change', onChangeFile);
     $form.on('submit', onCheckForm);
     $form.on('reset', onClearForm);
   }
@@ -69,17 +50,59 @@
   /**
    * Выбор загружаемого файла
    */
-  function onChangeFile (element){
+  function onChangeFile (element) {
     var $this = $(this),
-      paht_file = $this.val().replace(/.+[\\\/]/, "");
+        paht_file = $this.val().replace(/.+[\\\/]/, "");
 
     if (paht_file) {
-      $('.unload_paht_file').text(paht_file);
-      controlForm.delToolTip($this);
+      $('.upload_paht_file').text(paht_file);
     }else {
-      $('.unload_paht_file').text('Загрузите изображение');
+      $('.upload_paht_file').text('Загрузите изображение');
     }
   }
+
+  /**
+   * Загрузчик файлов
+   */
+  function initFileUpload () {
+    if($('input[type=file]').length>0) {
+
+      $('#upload_file').fileupload({
+        url: 'php/myuploadhandler.php',
+        dataType: 'json',
+        replaceFileInput: false,
+        maxNumberOfFiles: 1,
+
+          add: function(e, data) {
+            var jsondata,
+                $this = $(this);
+
+            if (!~data.files[0].type.indexOf('image')) {
+                controlForm.addToolTip($this,'Ваш файл не является изображением');
+
+            } else if (data.files[0].size > 1024*1024) {
+                controlForm.addToolTip($this,'Ваш файл слишком большой (более 1Mb)');
+
+            } else {
+
+              data.submit()
+              .success(function (result, textStatus, jqXHR) {
+                $('#project_img').val(result.new_file_name);
+                controlForm.delToolTip($this);
+              })
+              .error(function (jqXHR, textStatus, errorThrown) {
+                controlForm.addToolTip($this,'Ошибка загрузки файла');
+              });
+            }
+          },
+
+          progress: function(e, data){
+              controlForm.addToolTip($(this),'Загрузка файла, подождите....');
+          }
+
+        })
+      }
+    }
 
   /**
    * Удаление ToolTip при наборе текста
@@ -114,26 +137,26 @@
    *
    */
 (function() {
-  var my;
+  var my,
+      $currentForm;
 
   publicInterface();
 
   /**
    * Отображение ToolTip
    */
-  function addToolTipError ($element) {
-    var $tooltip = $element.closest('.form__item').find('.tooltipstext'),
-      labeltext = $element.closest('.form__item').find('.label_text').text();
+  function addToolTipError ($element, toltiptext) {
+    var $tooltip = $element.closest('.form__item').find('.tooltipstext');
+        $tooltip.text(toltiptext);
 
-    $tooltip.text('Заполните поле "' + labeltext + '"') ;
+      $tooltip.fadeIn(100, function(){
 
-    $tooltip.fadeIn(100, function(){
       if ($element.attr('type') !== 'file') {
         $element.addClass('error');
       }else {
-        $('.label_unload_file').addClass('error');
+        $('.label_upload_file').addClass('error');
       }
-    });
+     });
   }
 
   /**
@@ -143,12 +166,50 @@
     var $tooltip = $element.closest('.form__item').find('.tooltipstext');
 
     $tooltip.fadeOut(100, function(){
+      $element.removeClass('error');
       if ($element.attr('type') !== 'file') {
           $element.removeClass('error');
       }else {
-        $('.label_unload_file').removeClass('error');
+        $('.label_upload_file').removeClass('error');
       }
     });
+  }
+
+  /**
+   * Вывод сообщения перед отправкой данных на сервер
+   */
+  function ajaxBeforeSendForm() {
+    var jsondata = {'status':'server_before', 'status_text':'Подождите ответ от сервера.'};
+    createStatusServer ($currentForm, jsondata);
+  }
+
+  /**
+   * Вывод сообщения при упешной отправке данных на сервер
+   */
+  function ajaxSuccessForm(jsondata) {
+    var idform = $currentForm.attr('id'),
+        status = jsondata['status'];
+
+    createStatusServer ($currentForm, jsondata);
+
+    if (idform === 'login_form' && status === 'server_ok') {
+       setTimeout("document.location.href='../loft1php'", 1000);
+    }
+
+    if (idform === 'popup_form' && status === 'server_ok') {
+      $('.myinfo-container').prepend(jsondata['project_new']);
+        setTimeout( function (){
+          $(".popup__overlay").trigger( "click" );
+        }, 2000);
+    }
+  }
+
+  /**
+   * Вывод сообщения об ошибке на сервере
+   */
+  function ajaxErrorForm(error) {
+    var jsondata = {'status':'server_error', 'status_text':'Ошибка сервера ajax'};
+    createStatusServer ($currentForm, jsondata);
   }
 
   /**
@@ -160,63 +221,31 @@
       $sever_mess = $form.find('.sever_mess');
 
     if (status === 'server_before') {
-      $sever_mess.removeClass('server_error server_ok');
-      $sever_mess.addClass('server_before');
-      $sever_mess.find('.server_mess_title').text('Одну минуточку...');
+      $sever_mess.removeClass('server_error server_ok')
+                 .addClass('server_before')
+                 .find('.server_mess_title')
+                 .text('Одну минуточку...');
     }
 
     if (status === 'server_error' ) {
-      $sever_mess.removeClass('server_ok');
-      $sever_mess.addClass('server_error');
-      $sever_mess.find('.server_mess_title').text('Ошибка!');
+      $sever_mess.removeClass('server_ok')
+                 .addClass('server_error')
+                 .find('.server_mess_title')
+                 .text('Ошибка!');
     }
 
     if (status === 'server_ok') {
-      $sever_mess.removeClass('server_error');
-      $sever_mess.addClass('server_ok');
-      $sever_mess.find('.server_mess_title').text('Спасибо!');
+      $sever_mess.removeClass('server_error')
+                 .addClass('server_ok')
+                 .find('.server_mess_title')
+                 .text('Спасибо!');
     }
 
     $sever_mess.find('.server_mess_desc').text(status_text);
   }
 
-  /**
-   * Вывод сообщения перед отправкой данных на сервер
-   */
-  function ajaxBeforeSendForm($form) {
-    var jsondata = {'status':'server_before', 'status_text':'Подождите ответ от сервера.'};
-    createStatusServer ($form, jsondata);
-  }
 
-  /**
-   * Вывод сообщения при упешной отправке данных на сервер
-   */
-  function ajaxSuccessForm($form, jsondata) {
-    var idform = $form.attr('id'),
-        status = jsondata['status'];
-
-    createStatusServer ($form, jsondata);
-
-    if (idform === 'login_form' && status === 'server_ok') {
-       setTimeout("document.location.href='../loft1php'", 1000);
-    }
-
-    if (idform === 'popup_form' && status === 'server_ok') {
-       setTimeout("document.location.href='../loft1php/myworks.php'", 1000);
-    }
-
-  }
-
-  /**
-   * Вывод сообщения об ошибке на сервере
-   */
-  function ajaxErrorForm($form, error) {
-    //alert(error.text);
-    var jsondata = {'status':'server_error', 'status_text':'Ошибка сервера'};
-    createStatusServer ($form, jsondata);
-  }
-
-  /**
+   /**
    * Открытые методы
    */
   function publicInterface() {
@@ -225,15 +254,21 @@
       /**
        * Проверка заполнения форм пользователем
        */
-      validForm:  function($form) {
-              var isValidForm = true;
+      validForm: function($form) {
+              var isValidForm = true,
+                  toltipText;
 
               $form.find('input, textarea').each(function(e) {
-                var $this = $(this);
+                var $this = $(this),
+                    labeltext='';
 
-                if ($this.val() === '') {
+                if ($this.val().trim() === '') {
+
+                  labeltext = $this.closest('.form__item').find('.label_text').text();
+                  toltipText = 'Заполните поле "' + labeltext + '"';
+
                   isValidForm = false;
-                  addToolTipError($this);
+                  addToolTipError($this, toltipText);
                 }
               });
 
@@ -248,6 +283,13 @@
       },
 
       /**
+       * Добавление ToolTip элементу
+       */
+      addToolTip: function ($element, toltiptext){
+        addToolTipError($element, toltiptext);
+      },
+
+      /**
        * Очистка полей формы
        */
       clearForm: function ($form) {
@@ -255,7 +297,7 @@
           var $this = $(this);
 
             $this.val('');
-            $('.unload_paht_file').text('Загрузите изображение');
+            $('.upload_paht_file').text('Загрузите изображение');
             delToolTipError($this);
         });
 
@@ -263,27 +305,49 @@
       },
 
       /**
-       * Отправка данных на сервер.
+       * Отправка данных на сервер
        */
       sendAjax: function($form){
-        var formdata = new FormData($form[0]),
-            urlHandlerAjax = $form.attr('action'),
+          var formdata = $form.serialize(),
+            urlHandlerAjax = $form.attr('action');
+
             ajaxOptions = {
               url: urlHandlerAjax,
               type: 'post',
-              data: formdata,
+              data: {formdata : formdata},
               dataType: 'json',
-              contentType: false,
-              processData: false,
-              beforeSend: ajaxBeforeSendForm.bind(this, $form),
-              success: ajaxSuccessForm.bind(this, $form),
-              error: ajaxErrorForm.bind(this, $form)
+              beforeSend: ajaxBeforeSendForm,
+              success: ajaxSuccessForm,
+              error: ajaxErrorForm
             };
 
+        $currentForm = $form;
         $.ajax(ajaxOptions);
       }
     };
   }
 
   window.controlForm = my;
+})();
+
+
+/* Navigation*/
+(function () {
+
+  if(document.getElementById('navigation-list')) {
+    var navelements = document.getElementById('navigation-list').getElementsByTagName('li'),
+        currentpage = location.pathname.match(/[^/]*$/);
+
+    if (navelements.length > 0) {
+      for(var i = 0, len = navelements.length;  i < len; i++) {
+        if (currentpage[0] === "" ) {
+          currentpage = "index.php";
+        }
+
+        if (navelements[i].querySelector('a').href.indexOf(currentpage) !=-1) {
+            navelements[i].className += " current";
+        }
+      }
+    }
+  }
 })();

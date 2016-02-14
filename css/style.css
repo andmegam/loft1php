@@ -1,7 +1,7 @@
 @import '../fonts/fira/fira.css';
 @import '../fonts/proximanova/proximanova.css';
 
-* {box-sizing: border-box;}
+*{box-sizing: border-box;}
 
 html, body {
 	width: 100%;
@@ -24,9 +24,6 @@ ul {
     padding: 0;
 }
 
-.login {
-
-}
 .login .mycontact {
 	float: none;
 	max-width: 300px;
@@ -66,7 +63,7 @@ ul {
 
 .socials {
 	float: right;
-	font-size: 0px;
+	font-size: 0;
 }
 
 .socials-item {
@@ -75,7 +72,7 @@ ul {
 }
 
 .socials-item:first-child{
-	padding-left: 0px;
+	padding-left: 0;
 }
 
 .icon {
@@ -166,7 +163,7 @@ ul {
 .navigation .navigation-item:before {
   content: '';
   position: absolute;
-  top: 0px;
+  top: 0;
   height: 2px;
   right: 10px;
   left: 10px;
@@ -176,8 +173,8 @@ ul {
 .navigation .navigation-item:first-child:before {
 	content: '';
   	position: absolute;
-  	top: 0px;
-  	height: 0px;
+  	top: 0;
+  	height: 0;
 }
 
 .navigation .navigation-item.current {
@@ -196,7 +193,7 @@ ul {
 	font-size: 20px;
 	text-decoration: none;
 	color: #959aa8;
-	padding: 20px 0px 20px 26px;
+	padding: 20px 0 20px 26px;
 }
 
 .navigation .navigation-link:hover {

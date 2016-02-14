@@ -3,19 +3,17 @@ session_start();
 
 $captcha_code=$_SESSION['captcha_code'];
 
-if (isset($_POST['leadname'])) {$leadname=$_POST['leadname'];
-if ($leadname == '') {unset($leadname);}}
+if (isset($_POST['formdata'])) {
 
-if (isset($_POST['leademail'])) {$leademail=$_POST['leademail'];
-if ($leademail == '') {unset($leademail);}}
+	parse_str($_POST['formdata'], $params);
 
-if (isset($_POST['leadmessage'])) {$leadmessage=$_POST['leadmessage'];
-if ($leadmessage == '') {unset($leadmessage);}}
+	$leadname = strip_tags(htmlspecialchars(trim($params['leadname'])));
+	$leademail = strip_tags(htmlspecialchars(trim($params['leademail'])));
+	$leadmessage = strip_tags(htmlspecialchars(trim($params['leadmessage'])));
+	$leadcapture = strip_tags(htmlspecialchars(trim($params['leadcapture'])));
+}
 
-if (isset($_POST['leadcapture'])) {$leadcapture=$_POST['leadcapture'];
-if ($leadcapture == '') {unset($leadcapture);}}
-
-if (isset($leadname) && isset($leademail) && isset($leadmessage)  && isset($leadcapture)){
+if (!empty($leadname) && !empty($leademail) && !empty($leadmessage) && !empty($leadcapture) ){
 
 	// Проверка капчи
 	if ($leadcapture != $captcha_code) {
@@ -58,45 +56,44 @@ if (isset($leadname) && isset($leademail) && isset($leadmessage)  && isset($lead
 	return;
 }
 
-function smtpmail($to, $subject, $content, $attach=false)
-	{
-	  require_once('config_app.php');
-      require_once('phpmailer/class.phpmailer.php');
-      $mail = new PHPMailer(true);
+function smtpmail($to, $subject, $content, $attach=false) {
+	require_once('config_app.php');
+	require_once('phpmailer/class.phpmailer.php');
+	$mail = new PHPMailer(true);
 
-      $mail->IsSMTP();
+	$mail->IsSMTP();
 
-      $mail->Host       = $__smtp['host'];
-      $mail->SMTPDebug  = $__smtp['debug'];
-      $mail->SMTPAuth   = $__smtp['auth'];
-      $mail->Host       = $__smtp['host'];
-      $mail->Port       = $__smtp['port'];
-      $mail->Username   = $__smtp['username'];
-      $mail->Password   = $__smtp['password'];
-      $mail->SetFrom($__smtp['addreply'], 'Mashkov Andrey');
+	$mail->Host       = $__smtp['host'];
+	$mail->SMTPDebug  = $__smtp['debug'];
+	$mail->SMTPAuth   = $__smtp['auth'];
+	$mail->Host       = $__smtp['host'];
+	$mail->Port       = $__smtp['port'];
+	$mail->Username   = $__smtp['username'];
+	$mail->Password   = $__smtp['password'];
+	$mail->SetFrom($__smtp['addreply'], 'Mashkov Andrey');
 
-	  $mail->AddReplyTo($__smtp['addreply'], $__smtp['username']);
-	  $mail->AddAddress($to);
+	$mail->AddReplyTo($__smtp['addreply'], $__smtp['username']);
+	$mail->AddAddress($to);
 
-      $mail->Subject = htmlspecialchars($subject);
-      $mail->CharSet='utf8';
-      $mail->MsgHTML($content);
+	$mail->Subject = htmlspecialchars($subject);
+	$mail->CharSet='utf8';
+	$mail->MsgHTML($content);
 
-      if($attach)  $mail->AddAttachment($attach);
-      // $mail->Send();
+	if($attach)  $mail->AddAttachment($attach);
 
-		if (!$mail->Send()) {
-			$returner = "errorSend";
-		} else {
-			$returner = "okSend";
-		}
 
-       $mail->ClearAddresses();
-       $mail->ClearAttachments();
-       $mail->IsHTML(true);
-
-       return $returner;
+	if (!$mail->Send()) {
+		$returner = "errorSend";
+	} else {
+		$returner = "okSend";
 	}
+
+	$mail->ClearAddresses();
+	$mail->ClearAttachments();
+	$mail->IsHTML(true);
+
+	return $returner;
+}
 
 function content($leadname, $leademail, $leadmessage){
 	$body = '

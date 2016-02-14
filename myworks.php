@@ -106,33 +106,37 @@ if (isset($_SESSION['login'])) {
 
 					<div class="form__item">
 						<label class="label_text" for="project_name">Название проекта</label>
-						<input id="project_name" class="input_text"  type="text" name="project_name" placeholder="Введите название">
+						<input id="project_name" class="input_text"  type="text" name="project_name"
+						value = "баласт"  placeholder="Введите название">
 						<span class="tooltipstext posleft"></span>
 					</div>
 
 					<div class="form__item">
-						<label class="label_text" for="unload_file">Картинка проекта</label>
-						<label class="label_unload_file" for="unload_file">
-							<span class="unload_paht_file">Загрузите изображение</span>
-							<span class="label_unload_file_img">icon-unload_file</span>
-							<input id="unload_file" class="unload_file" multiple="multiple" name="project_file" type="file" ></label>
+						<label class="label_text" for="upload_file">Картинка проекта</label>
+						<label class="label_upload_file" for="upload_file">
+							<span class="upload_paht_file">Загрузите изображение</span>
+							<span class="label_upload_file_img">icon-upload_file</span>
+							<input id="upload_file" class="upload_file" name="upload_file" type="file" ></label>
+
 						<span class="tooltipstext posleft"></span>
 					</div>
 
 					<div class="form__item">
 						<label class="label_text" for="project_url">URL проекта</label>
-						<input id="project_url" class="input_text" type="text" name="project_url" placeholder="Добавьте ссылку">
+						<input id="project_url" class="input_text" type="text" name="project_url"
+						value = "баласт" placeholder="Добавьте ссылку">
 						<span class="tooltipstext posleft"></span>
 					</div>
 
 					<div class="form__item">
 						<label class="label_text" for="project_desc">Описание</label>
 						<textarea id="project_desc" class="textarea_text" name="project_desc"
-						placeholder="Пару слов о вашем проекте"></textarea>
+						placeholder="Пару слов о вашем проекте">Баласт</textarea>
 						<span class="tooltipstext posleft"></span>
 					</div>
 
 					<div class="span_center">
+						<input type="hidden" name="project_img" id="project_img">
 						<button class="button button_add" id="button_add" name="submit" type="submit" value="submit">Добавить</button>
 					</div>
 				</div>

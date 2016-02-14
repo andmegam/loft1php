@@ -85,7 +85,7 @@
 
 }
 
-.input_text, .label_unload_file, .textarea_text {
+.input_text, .label_upload_file, .textarea_text {
 	width: 100%;
     font-size: 13px;
     padding: 10px;
@@ -165,7 +165,7 @@
 	resize: none;
 }
 
-.label_unload_file_img {
+.label_upload_file_img {
 	position: absolute;
 	top:0;
 	right: 0;
@@ -178,12 +178,12 @@
 	cursor: pointer;
 }
 
-.unload_file {
+.upload_file {
 	position: absolute;
 	top: 10px;
 	left:10px;
 	z-index: -1;
-	font-size: 0;
+	font-size: 0px;
 }
 
 .row_top {
