@@ -73,33 +73,31 @@
         replaceFileInput: false,
         maxNumberOfFiles: 1,
 
-          add: function(e, data) {
-            var jsondata,
-                $this = $(this);
-
-            if (!~data.files[0].type.indexOf('image')) {
-                controlForm.addToolTip($this,'Ваш файл не является изображением');
-
-            } else if (data.files[0].size > 1024*1024) {
-                controlForm.addToolTip($this,'Ваш файл слишком большой (более 1Mb)');
-
-            } else {
-
-              data.submit()
+        add: function(e, data) {
+          var jsondata,
+              $this = $(this);
+            data.submit()
               .success(function (result, textStatus, jqXHR) {
-                $('#project_img').val(result.new_file_name);
-                controlForm.delToolTip($this);
-              })
-              .error(function (jqXHR, textStatus, errorThrown) {
-                controlForm.addToolTip($this,'Ошибка загрузки файла');
-              });
-            }
+                if (result.status === 'server_error') {
+                  controlForm.addToolTip($this, result.text_status);
+
+                  $('#project_img').val('');
+                  $('#upload_file').val('');
+                  $('.upload_paht_file').text('Загрузите изображение');
+
+                } else {
+                  controlForm.delToolTip($this);
+                  $('#project_img').val(result.text_status);
+                }
+            })
+            .error(function (jqXHR, textStatus, errorThrown) {
+              controlForm.addToolTip($this,'Ошибка загрузки файла');
+            });
           },
 
-          progress: function(e, data){
-              controlForm.addToolTip($(this),'Загрузка файла, подождите....');
+        progress: function(e, data){
+            controlForm.addToolTip($(this),'Загрузка файла, подождите....');
           }
-
         })
       }
     }
@@ -262,7 +260,7 @@
                 var $this = $(this),
                     labeltext='';
 
-                if ($this.val().trim() === '') {
+                if ($this.val() === '') {
 
                   labeltext = $this.closest('.form__item').find('.label_text').text();
                   toltipText = 'Заполните поле "' + labeltext + '"';
